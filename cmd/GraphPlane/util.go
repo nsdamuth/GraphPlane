@@ -17,8 +17,32 @@
 package main
 import (
     "os"
+    "fmt"
+    "crypto/tls"
+	"crypto/x509"
+    "github.com/philips/grpc-gateway-example/insecure"
 )
 
+var (
+	demoKeyPair  *tls.Certificate
+	demoCertPool *x509.CertPool
+	demoAddr     string
+)
+
+func init() {
+	var err error
+	pair, err := tls.X509KeyPair([]byte(insecure.Cert), []byte(insecure.Key))
+	if err != nil {
+		panic(err)
+	}
+	demoKeyPair = &pair
+	demoCertPool = x509.NewCertPool()
+	ok := demoCertPool.AppendCertsFromPEM([]byte(insecure.Cert))
+	if !ok {
+		panic("bad certs")
+	}
+	demoAddr = fmt.Sprintf("localhost:%d", port)
+}
 func stringInSlice(a string, list []string) bool {
     for _, b := range list {
         if b == a {

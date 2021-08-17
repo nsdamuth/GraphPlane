@@ -18,12 +18,14 @@ package main
 
 import (
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 )
 func setupGrpcServerOptions() []grpc.ServerOption {
 	// This is where you can setup custom options for the grpc server
 	// https://godoc.org/google.golang.org/grpc#ServerOption
-	return nil
+	opts := []grpc.ServerOption{grpc.Creds(credentials.NewClientTLSFromCert(demoCertPool, "localhost:10000"))}
+	return opts
 }
 func setupServeMuxOptions() []runtime.ServeMuxOption {
 	// https://godoc.org/github.com/grpc-ecosystem/grpc-gateway/runtime#ServeMuxOption

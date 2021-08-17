@@ -20,16 +20,18 @@ package main
 import (
 	"os"
 	"net"
+	"github.com/spf13/viper"
 	"damuth.nick/GraphPlane/internal/Logger"
 )
 
 var port = 4000
-var configs map[string]interface{}
+// var configs map[string]interface{}
 var listen net.Listener
+// var configs viper.New()
 
 func main() {
+	var configs = viper.New()
 	logger.LogByType("INFO", "Starting GraphPlane Server")
-	go LoadConfigs(&configs, &listen)
 	if (os.Args != nil) {
 		if (stringInSlice("test", os.Args)) {
 
@@ -38,7 +40,19 @@ func main() {
 
 		}
 	}
-	for (configs["server"] == nil) { }
-	ServeAndWait(port, &configs, &listen)
+	/////////////////////////////////////////
+	// Configuration Loading & Monitoring
+	go LoadConfigs(configs, &listen)
+	for (configs.Get("server") == nil) { }
+	
+	/////////////////////////////////////////
+	// Begin threading DB
+
+	/////////////////////////////////////////
+	// Begin threading Kafka Services
+
+	/////////////////////////////////////////
+	// Start up gRPC and Web Services, to includ UID
+	ServeAndWait(port, configs, &listen)
 	logger.LogByType("INFO", "Completing GraphPlane Server")
 }

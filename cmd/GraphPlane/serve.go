@@ -20,11 +20,12 @@
 	//  "os"
 	 "fmt"
 	 "net"
-	 "damuth.nick/GraphPlane/internal/Logger"
-	//  "google.golang.org/grpc"
+	 "google.golang.org/grpc"
+	 "github.com/spf13/viper"
 	//  "github.com/cockroachdb/cmux"
 	 "github.com/zenazn/goji/bind"
 	 "github.com/zenazn/goji/graceful"
+	 "damuth.nick/GraphPlane/internal/Logger"
 	 // "github.com/golang/protobuf/proto"
 	//  "github.com/grpc-ecosystem/grpc-gateway/runtime"
  )
@@ -34,12 +35,12 @@
  type ServiceHandlers struct {
  }
  
- func ServeAndWait(port int, configs *map[string]interface{}, listen *net.Listener) {
+ func ServeAndWait(port int, configs *viper.Viper, listen *net.Listener) {
 	logger.LogByType("INFO", "Attempting to Server & Wait gRPC & HTTP Services")
-	 if ((*configs)["server"] != nil) {
-		 loaded_port = (((*configs)["server"]).(map[string]interface{}) )["port"]
+	 if (configs.Get("server.port") != nil) {
+		 loaded_port = int((configs.Get("server.port")).(float64))
 		 if (loaded_port != nil) {
-			 port = int(loaded_port.(float64))
+			 port = int((configs.Get("server.port")).(float64))
 		 }
 	 }
 	 startServer(port, listen)
@@ -48,12 +49,16 @@
 	 }
  }
  func startServer(port int, listen *net.Listener) {
+	gSvrOpts := setupGrpcServerOptions()
+	grpcServer := grpc.NewServer(gSvrOpts...)
+	_ = grpcServer
+
 	var err error = nil
 	*listen, err = net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		logger.LogByType("ERROR", fmt.Sprintf("failed to listen: %v", err))
 	}
-	
+
 	// Here we handle some signals so that we can stop the server when running.
 	graceful.HandleSignals()
 	// Handle gracefully stopping the server on signals.
